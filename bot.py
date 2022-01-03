@@ -1,15 +1,25 @@
 import re
 import random
+from datetime import datetime
+from sched import scheduler
+
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 
 import requests
 from lxml import html
+from telegram import Bot
 from telegram.ext import Updater, CommandHandler
 
+scheduler = BlockingScheduler()
+
 DEBUG = 1
+
 
 def __debug(msg):
     if DEBUG:
         print("\033[94m[DEBUG]\033[0m", msg)
+
 
 def start(bot, update):
     __debug("CALL start")
@@ -17,13 +27,23 @@ def start(bot, update):
     update.message.reply_text(
         "Selam! Sana nasıl yardım edebileceğimi öğrenmek için /help yazabilirsin.")
 
+
+@scheduler.scheduled_job(IntervalTrigger(seconds=7))
+def sendMessageToChannel():
+    bot = Bot("5022083632:AAFEUtGQ5vhnA_GQbMq6llM34sgRpMZ9tP4")
+    bot.send_message("@linkedinfars", "this message sent from boy")
+
+
 def help(bot, update):
     __debug("CALL help")
+    update.message.reply_text('hello')
 
-    update.message.reply_text(
-        "/video_at - sana Youtube’da şu an trend olan videolardan birini atarım.\n"
-		"/haber_at - sana BBC’de en çok okunan haberlerden birini atarım.\n\n"
-        "/help - bu yardım mesajını gösterir")
+
+# update.message.reply_text(
+#     "/video_at - sana Youtube’da şu an trend olan videolardan birini atarım.\n"
+#     "/haber_at - sana BBC’de en çok okunan haberlerden birini atarım.\n\n"
+#     "/help - bu yardım mesajını gösterir")
+
 
 def video_at(bot, update):
     __debug("CALL video_at")
@@ -46,6 +66,7 @@ def video_at(bot, update):
         return
 
     update.message.reply_text("https://youtube.com" + random.choice(video_list)[6:-1])
+
 
 def haber_at(bot, update):
     __debug("CALL haber_at")
@@ -75,22 +96,23 @@ def haber_at(bot, update):
 
     update.message.reply_text("https://www.bbc.com" + random.choice(news_list).attrib["href"])
 
+
 def main():
     __debug("CALL main")
 
     __debug("main: Initializing updater")
-    updater = Updater("BOT TOKEN")
+    updater = Updater("5022083632:AAFEUtGQ5vhnA_GQbMq6llM34sgRpMZ9tP4", use_context=False)
     dp = updater.dispatcher
-
     __debug("main: Configuring handlers")
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(CommandHandler("video_at", video_at))
     dp.add_handler(CommandHandler("haber_at", haber_at))
-
     __debug("main: Starting idle process")
     updater.start_polling()
     updater.idle()
 
+
 if __name__ == "__main__":
     main()
+    scheduler.start()
